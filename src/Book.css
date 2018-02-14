@@ -1,0 +1,7 @@
+.book {
+    width:128px;
+    padding: 5px;
+}
+.book .thumb{
+    height: 220px;
+}
