@@ -1,31 +1,73 @@
 import React, { Component } from 'react' ;
 import PropTypes from 'prop-types';
 
-import serialize from 'form-serialize' ;
+import * as BooksAPI from './BooksAPI' ;
+import Shelf from './Shelf';
 
-class SearchForm extends Component {
+
+export default class SearchForm extends Component {
 
   static propTypes = {
-    search: PropTypes.func.isRequired
+    shelves:PropTypes.object,
+    locateBook:PropTypes.func
+  }
+
+  state={
+    search:[],
+    query:''
   }
 
   submit(ev){
     ev.preventDefault() ;
-    // serialize form to object and retrieve query property
-    const query = serialize(ev.target, { hash: true }).query ;
-    // pased search function
-    this.props.search(query) ;
+    let {value:query} = ev.target ;
+    this.setState(
+      { query },
+        _=>this.search(query)) ;
+     ;
+  }
+
+  search(query){
+    query ?
+      // if query is not null/undefined : make api call with query
+      BooksAPI.search(query)
+        .then(search => {
+          const {locateBook} = this.props ;
+          let mybook;
+          search = search.map(book =>
+            (mybook = locateBook(book.id)) ? mybook : book )
+          // console.log(search)
+          // FIX
+          Array.isArray(search) ?
+            this.setState({ search }) :
+            this.setState({ search:[] })
+        })
+        .catch(error => {
+          // state query error
+          this.setState({ search:[] }) ;
+        })
+      : // if query is null/undefined : empty search results
+      this.setState({ search:[] }) ;
   }
 
   render() {
+    const { search, query } = this.state,
+            controlTools = this.props ;
     return (
-        <form onSubmit={ this.submit.bind(this) } >
-          <input type="text" name="query" />
-          <button>search</button>
-        </form>
+
+      <React.Fragment>
+        <input type="text"
+          onChange={this.submit.bind(this)}
+          value={ query }/>
+
+        <Shelf
+            books={ search }
+            {...controlTools} // obfuscates
+            shelves={Object.keys(this.props.shelves)} // overwrites
+            >
+        </Shelf>
+      </React.Fragment>
+
     ) ;
   }
 
-}
-
-export default SearchForm ;
+};
