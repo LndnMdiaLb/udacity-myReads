@@ -2,37 +2,22 @@ import React, { Component } from 'react' ;
 import PropTypes from 'prop-types' ;
 import {Route, Link} from 'react-router-dom' ;
 import * as BooksAPI from './BooksAPI' ;
-import Shelf from './Shelf';
+import MyLibrary from './MyLibrary';
 import SearchForm from './SearchForm';
 import './App.css' ;
 
-class App extends Component {
+export default class App extends Component {
 
   static propTypes = {
-    shelves:PropTypes.array
-  }
-
-
-    // Component's constructor
-  constructor(props){
-    // Required to call original constructor
-    super(props);
-    // Props are now accessible from here
-    // var v = props.hello_i_am_a_prop;
-    this.getAll = this.getAll.bind(this);
-    this.search = this.search.bind(this);
-    this.update = this.update.bind(this);
+    shelves:PropTypes.object
   }
 
   state = {
-    // home page
     shelves:{
       currentlyReading:[],
       wantToRead:[],
       read:[]
-    },
-    // search page
-    searchResults:[]
+    }
   }
 
   /*
@@ -44,127 +29,116 @@ class App extends Component {
     this.getAll() ;
   }
 
-  componentDidUpdate(){
-    console.log('did', this.state)
-  }
-
   /*
-  returns JSON list of all books on Shelves
+    retrieves JSON list of all books on Shelves and adds to state
   */
 
   getAll(){
     BooksAPI.getAll()
       .then(books => {
-          // construct initial shelves state in temp object
+          // construct initial shelves in temp object
           const shelves = {} ;
           books.forEach(
             book => ( shelves[book.shelf] || (shelves[book.shelf] = []) ).push(book)
           ) ;
-          console.log('getall', shelves)
           this.setState({
             shelves
           }) ;
       })
-  }
-
-  get(id){
-    BooksAPI.get(id)
-    .then(book => {
-        console.log('get book:', book)
-    })
-  }
-
-  /*
-  */
-
-  search(query){
-    query ?
-      // if query is not null/undefined : make api call with query
-      BooksAPI.search(query)
-        .then(searchResults => {
-          // FIX
-          Array.isArray(searchResults) ?
-            this.setState({ searchResults }) :
-            this.setState({ searchResults:[] })
-        })
-        .catch(error => {
-          // state query error
-          this.setState({
-            searchResults:[]
-          }) ;
-        })
-      : // if query is null/undefined : empty search results
-      this.setState({
-        searchResults:[]
-      }) ;
-  }
-
-
-  update(book, shelf){
-    /*
-    returns JSON list of all books.id on Shelves
-        {
-          currentlyReading:[<stringOfID>,<stringOfID>],
-          wantToRead:[<stringOfID>,<stringOfID>,<stringOfID>],
-          read:[<stringOfID>]
-        }
-    */
-    BooksAPI.update(book.id, shelf)
-      .then(updates => {
-
-        console.log('update', updates) ;
-        this.setState({
-          updates
-        }) ;
+      .catch(error=>{
+        // ???
       })
   }
 
+  //////////////////////////////////////////////////////////////////////
+  // Shelf Manipulation
+  //////////////////////////////////////////////////////////////////////
+
+  /*
+    checks if book id (from raw BookAPI.search) exists in
+    MyLibrary and returns Library book object
+  */
+
+  locateBook(id){
+    let {shelves} = this.state ;
+    for (let shelf in shelves){
+        let book = shelves[shelf].find(book=>book.id===id)
+        if(book) return book
+    }
+    return null
+  }
+
+  /*
+    rearranges a book in state.shelves
+  */
+
+  sortto(book, shelf){
+    const { shelves } = this.state ,
+          prvshelf = book.shelf
+          ;
+    book.shelf = shelf ;
+    shelves[prvshelf].splice(shelves[prvshelf].indexOf(book), 1) ;
+    if(shelf !== 'none') shelves[shelf].push(book) ;
+    return Promise.resolve(shelves);
+  }
+
+  /*
+    add a book in state.shelves
+  */
+
+  addto(book, shelf=null){
+    const { shelves } = this.state ;
+    shelves[ shelf ? shelf : book.shelf ].push(book) ;
+    if(shelf) book.shelf = shelf ;
+    return Promise.resolve(shelves) ;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+  // Shelf Manipulation
+  //////////////////////////////////////////////////////////////////////
+
+  arrange(id, shelf){
+    let book;
+    ((book =  this.locateBook(id)) ?
+        this.sortto(book, shelf)
+        :
+        // if book not in MyLibrary retrieve it
+        BooksAPI.get(id).then(book => this.addto(book, shelf)))
+
+    .then(shelves =>  this.setState({ shelves }) ) ;
+
+    // update remote
+    BooksAPI.update({id}, shelf)
+  }
+
+
+
   render() {
-    const shelfNames = Object.keys(this.state.shelves) ;
-    console.log(Object.keys(this.state.shelves)[1])
+    const controlTools = {
+      shelves:Object.assign({}, this.state.shelves) ,
+      arrange:this.arrange.bind(this)
+    }
+
     return (
       <article>
         <h1>My Reads</h1>
 
-        <section className='shelves'>
-
           <Route exact path='/' render={() =>
-          <div>{
-            shelfNames.map( shelf => (
-              <Shelf
-                key={ shelf }
-                name={shelf}
-                books={this.state.shelves[shelf]}
-                {...this.state}
-                update={this.update}>
-                  <h1>{shelf}</h1>
-              </Shelf>
-              ) )}
-                <Link to="/search">About</Link>
-                <button onClick={_=>this.update(this.state.searchResults[7], Object.keys(this.state.shelves)[1])}>update</button>
-                <button onClick={_=>this.getAll()}>get</button>
-                <button onClick={_=>this.get(this.state.searchResults[7].id)}>get book</button>
-                <button onClick={_=>this.search('An')}>search</button>
-                </div>
-
+              <React.Fragment>
+                <MyLibrary {...controlTools} />
+                <Link to="/search">Search</Link>
+              </React.Fragment>
             } />
 
-          <Route exact path='/search' render={() => (
-              <Shelf
-                  name='search'
-                  books={this.state.searchResults}
-                  {...this.state}
-                  update={this.update}>
-                  <SearchForm
-                    search={ this.search }
-                    />
-              </Shelf>
-            )} />
+          <Route exact path='/search' render={() =>
+              <React.Fragment>
+                <SearchForm {...controlTools}
+                            locateBook={this.locateBook.bind(this)} />
+                <Link to="/">My Library</Link>
+              </React.Fragment>
+            } />
 
-          </section>
       </article>
     )
   }
 }
-
-export default App ;
