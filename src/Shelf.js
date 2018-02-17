@@ -1,22 +1,25 @@
 import React  from 'react' ;
 import Book from './Book' ;
-import ShelfSelect from './ShelfSelect' ;
+import BookControl from './BookControl' ;
 import './Shelf.css' ;
 
-const Shelf = (props) => {
-    const books = props.books;
+const Shelf = ({ books, children, ...controlTools } ) => {
     return (
         <section>
             {
-                props.children && props.children
+                children && children
             }
             <div className='books'>
                 { books.map(book => (
                     <Book
                         key={book.id}
-                        bookData={book}
-                        updateShelf={props.updateShelf}>
-
+                        book={book}
+                        >
+                        <BookControl
+                            bookId={book.id}
+                            shelf={book.shelf}
+                            {...controlTools}
+                        />
                     </Book>
                     )) }
             </div>
