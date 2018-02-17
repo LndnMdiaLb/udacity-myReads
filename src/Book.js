@@ -1,39 +1,29 @@
-import React, {Component} from 'react' ;
+import React from 'react' ;
 import PropTypes from 'prop-types' ;
 import './Book.css' ;
 
-class Book extends Component{
-
-    static propTypes = {
-        bookData: PropTypes.object ,
-        updateShelf: PropTypes.func
-    }
-
-    // componentDidMount(){
-
-    // }
-
-    render(){
-        let {bookData} = this.props ;
-        // console.log(bookData.id)
-        return (
-            <div className='book'>
-                <div className='thumb'>
-                    <img
-                        src={ bookData.imageLinks? bookData.imageLinks.smallThumbnail : '' }
-                        alt = 'thumbnail'
-                        />
-                </div>
-                <div>
-                    <h3>{bookData.title}</h3>
-                    <h5>{bookData.authors}</h5>
-                </div>
-                {
-                    this.props.children
-                }
+const Book = ({book, children} )=>{
+    return (
+        <div className='book'>
+            <div className='thumb'>
+                <img
+                    src={ book.imageLinks? book.imageLinks.smallThumbnail : '' }
+                    alt = 'thumbnail'
+                />
             </div>
-        ) ;
-    }
+            <div>
+                <h3>{book.title}</h3>
+                <h5>{book.authors}</h5>
+            </div>
+            {
+                children
+            }
+        </div>
+    ) ;
+}
+
+Book.propTypes = {
+    book: PropTypes.object
 }
 
 export default Book ;
