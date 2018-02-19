@@ -1,30 +1,35 @@
 import React  from 'react' ;
+import PropTypes from 'prop-types' ;
+
 import Book from './Book' ;
 import BookControl from './BookControl' ;
-import './Shelf.css' ;
 
-const Shelf = ({ books, children, ...controlTools } ) => {
+const Shelf = ({ className, books, children, ...controlTools } ) => {
     return (
-        <section>
-            {
-                children && children
-            }
+        <section className={['shelf', className].join(' ')}>
+            <div className='head'>
+                { children && children /* header children */ }
+            </div>
             <div className='books'>
-                { books.map(book => (
+                { books.map(book =>
                     <Book
                         key={book.id}
                         book={book}
                         >
                         <BookControl
-                            bookId={book.id}
+                            id={book.id}
                             shelf={book.shelf}
                             {...controlTools}
                         />
                     </Book>
-                    )) }
+                    ) }
             </div>
         </section>
     ) ;
+}
+
+Shelf.propTypes = {
+    books:PropTypes.array,
 }
 
 export default Shelf ;

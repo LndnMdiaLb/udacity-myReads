@@ -1,23 +1,25 @@
 import React from 'react' ;
 import PropTypes from 'prop-types' ;
-import './Book.css' ;
 
 const Book = ({book, children} )=>{
     return (
         <div className='book'>
-            <div className='thumb'>
-                <img
-                    src={ book.imageLinks? book.imageLinks.smallThumbnail : '' }
-                    alt = 'thumbnail'
-                />
+            <div className='thumb'
+                style={{
+                    background: book.imageLinks ?
+                            `url(${book.imageLinks.smallThumbnail}) center no-repeat` :
+                            '#2f2f2f' ,
+                    backgroundSize:'cover'
+                }}
+            >
             </div>
-            <div>
+            <div className='info'>
                 <h3>{book.title}</h3>
                 <h5>{book.authors}</h5>
+                {
+                    children
+                }
             </div>
-            {
-                children
-            }
         </div>
     ) ;
 }

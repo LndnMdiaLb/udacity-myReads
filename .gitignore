@@ -20,3 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 search-terms.txt
+
+src/App.css.map
+src/icons/
+scss/.sass-cache/
+scss/App.css
+scss/App.css.map

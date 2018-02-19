@@ -55,16 +55,17 @@ export default class SearchForm extends Component {
     return (
 
       <React.Fragment>
-        <input type="text"
-          onChange={this.submit.bind(this)}
-          value={ query }/>
-
         <Shelf
+            className='search'
             books={ search }
             {...controlTools} // obfuscates
             shelves={Object.keys(this.props.shelves)} // overwrites
+
             >
-        </Shelf>
+            <input type="text"
+              onChange={this.submit.bind(this)}
+              value={ query }/>
+          </Shelf>
       </React.Fragment>
 
     ) ;

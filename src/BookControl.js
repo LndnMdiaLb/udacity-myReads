@@ -4,7 +4,7 @@ import PropTypes from 'prop-types' ;
 export default class BookControl extends Component {
 
     static propTypes = {
-        bookId:PropTypes.string,
+        id:PropTypes.string,
         shelf:PropTypes.string,
         shelves:PropTypes.array,
         arrange:PropTypes.func
@@ -17,14 +17,13 @@ export default class BookControl extends Component {
             shelf: shelf ? shelf: 'none',
             exists: !!shelf
         }
-        console.log(this.props.mynew, props.mynew)
     }
 
     addToShelf({target:{value}}){
-        const  {arrange, bookId:id} = this.props ,
+        const  {arrange, id} = this.props ,
                 shelf = value ;
                 arrange(id, shelf) ;
-                this.state.exists && this.setState({shelf})
+                this.setState({shelf}) ;
     }
 
     render(){
@@ -32,8 +31,8 @@ export default class BookControl extends Component {
         return (
             <div className='book-shelf-changer'>
                 <select name="text"
-                        value={this.state.shelf}
-                        onChange={this.addToShelf.bind(this)}>
+                        value={ this.state.shelf }
+                        onChange={ this.addToShelf.bind(this) }>
                     {shelves.map(
                         shelf =>
                             <option

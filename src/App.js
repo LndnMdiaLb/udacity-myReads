@@ -105,7 +105,7 @@ export default class App extends Component {
         // if book not in MyLibrary retrieve it
         BooksAPI.get(id).then(book => this.addto(book, shelf)))
 
-    .then(shelves =>  this.setState({ shelves }) ) ;
+    .then(shelves => { this.setState({ shelves }) } ) ;
 
     // update remote
     BooksAPI.update({id}, shelf)
@@ -120,13 +120,22 @@ export default class App extends Component {
     }
 
     return (
-      <article>
-        <h1>My Reads</h1>
+      <React.Fragment>
+        <nav className="sidebar">
+
+          <Link className="folder-tab MyLibrary" to="/">
+              <span>My Library</span>
+          </Link>
+          <Link className="folder-tab SearchForm" to="/search">
+              <span>Search</span>
+          </Link>
+        </nav>
+
+        <article className='content'>
 
           <Route exact path='/' render={() =>
               <React.Fragment>
                 <MyLibrary {...controlTools} />
-                <Link to="/search">Search</Link>
               </React.Fragment>
             } />
 
@@ -134,11 +143,10 @@ export default class App extends Component {
               <React.Fragment>
                 <SearchForm {...controlTools}
                             locateBook={this.locateBook.bind(this)} />
-                <Link to="/">My Library</Link>
               </React.Fragment>
             } />
-
-      </article>
+        </article>
+      </React.Fragment>
     )
   }
 }
